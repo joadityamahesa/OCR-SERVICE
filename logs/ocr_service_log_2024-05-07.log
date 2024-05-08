@@ -1,0 +1,10 @@
+2024/05/07 13:15:30 [2024-05-07T13:15:30+07:00] POST /ocr/face
+2024/05/07 13:15:30 START PROSES FACE COMPARE -> refId :  70c91453-4470-497c-903b-89b6e544fc4f , image 1 : /9j/4AAQSk  , image 2 :  /9j/4AAQSk , fileName 1 : messi1.jpg , fileName 2 : messi2.jpg
+2024/05/07 13:15:32 2024-05-07 13:15:32.214
+2024/05/07 13:15:32 RESPONSE BODY FACE COMPARE -> refId : 70c91453-4470-497c-903b-89b6e544fc4f  , {"code":"SUCCESS","message":"OK","data":{"firstFace":{"bottom":1015.2969360351562,"id":"1","left":298.77093505859375,"right":876.7415771484375,"top":225.15054321289062},"secondFace":{"bottom":1015.2969360351562,"id":"2","left":298.77093505859375,"right":876.7415771484375,"top":225.15054321289062},"similarity":100},"extra":null,"transactionId":"059e124c162f1895","pricingStrategy":"PAY","refId":"70c91453-4470-497c-903b-89b6e544fc4f","responseTimestamp":"2024-05-07 13:15:32.214"}
+2024/05/07 13:15:32 [2024-05-07T13:15:32+07:00] POST /ocr/face 200 (1.7854424s)
+2024/05/07 13:15:32 Request Method:  POST
+2024/05/07 13:15:32 Request URL:  /ocr/face
+2024/05/07 13:15:32 Response Status: 200
+2024/05/07 13:15:32 Response Body: {"code":"SUCCESS","message":"OK","data":{"firstFace":{"bottom":1015.2969360351562,"id":"1","left":298.77093505859375,"right":876.7415771484375,"top":225.15054321289062},"secondFace":{"bottom":1015.2969360351562,"id":"2","left":298.77093505859375,"right":876.7415771484375,"top":225.15054321289062},"similarity":100},"extra":null,"transactionId":"059e124c162f1895","pricingStrategy":"PAY","refId":"70c91453-4470-497c-903b-89b6e544fc4f","responseTimestamp":"2024-05-07 13:15:32.214"}
+
