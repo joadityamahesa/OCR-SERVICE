@@ -1,11 +1,13 @@
 package services
 
 import (
+	"OCR-SERVICE/constanta"
 	"OCR-SERVICE/models"
 	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -63,7 +65,7 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 		res = models.ServiceResponse{
 			Code:            "REQUEST_ERROR",
 			Message:         "Error Decode Image",
-			Data:            nil,
+			Data:            nil, // models.DataAAI{},
 			Extra:           nil,
 			TransactionID:   "",
 			PricingStrategy: "",
@@ -85,7 +87,7 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 		res = models.ServiceResponse{
 			Code:            "REQUEST_ERROR",
 			Message:         "Error Processing Image",
-			Data:            nil,
+			Data:            nil, //models.DataAAI{},
 			Extra:           nil,
 			TransactionID:   "",
 			PricingStrategy: "",
@@ -132,12 +134,14 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
+	respaai := models.ResponseAai{}
+
 	restyClient := resty.New()
 	_, errSend := restyClient.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", writer.FormDataContentType()).
 		SetHeader("X-ACCESS-TOKEN", bodyReq.TokenService).
-		SetResult(&res).
+		SetResult(&respaai).
 		SetError(&res).
 		SetBody(body.Bytes()).
 		Post(bodyReq.EpService)
@@ -156,7 +160,7 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 		res = models.ServiceResponse{
 			Code:              "REQUEST_TIME_OUT",
 			Message:           "koneksi timeout ke OCR service. Silahkan coba beberapa saat lagi",
-			Data:              nil,
+			Data:              nil, //models.DataAAI{},
 			Extra:             nil,
 			TransactionID:     "",
 			PricingStrategy:   "",
@@ -173,7 +177,7 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 		res = models.ServiceResponse{
 			Code:              "REQUEST_ERROR",
 			Message:           "Terkendala Jaringan/Koneksi, Silahkan Coba Beberapa Saat Lagi",
-			Data:              nil,
+			Data:              nil, //models.DataAAI{},
 			Extra:             nil,
 			TransactionID:     "",
 			PricingStrategy:   "",
@@ -186,11 +190,13 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 		return res
 	}
 
-	if res.Code == "" {
+	fmt.Println(respaai.Code)
+
+	if respaai.Code != "SUCCESS" {
 		res = models.ServiceResponse{
 			Code:              "REQUEST_ERROR",
 			Message:           "Terkendala Jaringan/Koneksi, Silahkan Coba Beberapa Saat Lagi",
-			Data:              nil,
+			Data:              nil, //models.DataAAI{},
 			Extra:             nil,
 			TransactionID:     "",
 			PricingStrategy:   "",
@@ -202,8 +208,87 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 		log.Println("RESPONSE BODY:", string(resLog))
 		return res
 	}
+
+	respgoogle := models.ResponseGoogleGeo{}
+
+	reqtogoogle := map[string]string{
+		"address": respaai.Data.Address + " KELURAHAN " + respaai.Data.Village + " KECAMATAN " + respaai.Data.District, // The address query
+		"key":     constanta.API_KEY_GOOGLE_GEOCODING,                                             // Response format
+	}
+
+	restyClient = resty.New()
+	_, errs := restyClient.R().
+		SetQueryParams(reqtogoogle).
+		SetResult(&respgoogle). // This will parse the result into the struct
+		Get("https://maps.googleapis.com/maps/api/geocode/json")
+
+	log.Println("Req To Google :", reqtogoogle)
+
+	if errs != nil {
+		res = models.ServiceResponse{
+			Code:            "REQUEST_ERROR",
+			Message:         "Resp Error From Google",
+			Data:            nil, //models.DataAAI{},
+			Extra:           nil,
+			TransactionID:   "",
+			PricingStrategy: "",
+		}
+		resLog, _ := json.Marshal(res)
+
+		log.Println("RESPONSE BODY:", string(resLog))
+
+		return res
+	}
+
+	if respgoogle.Status != "OK" {
+		res = models.ServiceResponse{
+			Code:            respgoogle.Status,
+			Message:         "Resp Error From Google",
+			Data:            nil, //models.DataAAI{},
+			Extra:           nil,
+			TransactionID:   "",
+			PricingStrategy: "",
+		}
+		resLog, _ := json.Marshal(res)
+
+		log.Println("RESPONSE BODY:", string(resLog))
+
+		return res
+	}
+
+	res = models.ServiceResponse{
+		Code:    respaai.Code,
+		Message: respaai.Message,
+		Data: &models.DataAAI{
+			Address:            respaai.Data.Address,
+			BirthPlaceBirthday: respaai.Data.BirthPlaceBirthday,
+			BloodType:          respaai.Data.BloodType,
+			City:               respaai.Data.City,
+			District:           respaai.Data.District,
+			ExpiryDate:         respaai.Data.ExpiryDate,
+			Gender:             respaai.Data.Gender,
+			IDNumber:           respaai.Data.IDNumber,
+			MaritalStatus:      respaai.Data.MaritalStatus,
+			Name:               respaai.Data.Name,
+			Nationality:        respaai.Data.Nationality,
+			Occupation:         respaai.Data.Occupation,
+			Province:           respaai.Data.Province,
+			Religion:           respaai.Data.Religion,
+			Rtrw:               respaai.Data.Rtrw,
+			Village:            respaai.Data.Village,
+			Lat:                fmt.Sprintf("%f", respgoogle.Results[0].Geometry.Location.Lat),
+			Lon:                fmt.Sprintf("%f", respgoogle.Results[0].Geometry.Location.Lng),
+		},
+		Extra:             nil,
+		TransactionID:     respaai.TransactionID,
+		PricingStrategy:   respaai.PricingStrategy,
+		RefId:             refId,
+		ResponseTimestamp: respTime,
+	}
+
 	res.ResponseTimestamp = respTime
 	res.RefId = refId
+	// res.Data.BirthPlaceBirthday = "Bandar Lampung Nusantara 21-06-1975"
 	resLog, _ := json.Marshal(res)
 
 	log.Println("RESPONSE BODY OCR KTP ->", "refId :", refId, " ,", string(resLog))

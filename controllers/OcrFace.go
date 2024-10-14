@@ -30,7 +30,7 @@ func OcrFace(c *gin.Context) {
 	}
 
 	if err != nil {
-		res := models.ServiceResponse{
+		res := models.ServiceResponseFace{
 			Code:            "INVALID_JSON",
 			Message:         "Error Unmarshall JSON",
 			Data:            nil,

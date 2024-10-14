@@ -17,9 +17,9 @@ import (
 
 //function ocr non face (KTP)
 
-func OcrFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
+func OcrFaceSvc(bodyReq models.BodyReq) models.ServiceResponseFace {
 
-	res := models.ServiceResponse{}
+	res := models.ServiceResponseFace{}
 	id := uuid.New()
 	//fmt.Println(id.String())
 	refId := id.String()
@@ -59,7 +59,7 @@ func OcrFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 	// Decode base64 images
 	image1Data, err := base64.StdEncoding.DecodeString(bodyReq.Image1)
 	if err != nil {
-		res = models.ServiceResponse{
+		res = models.ServiceResponseFace{
 			Code:            "REQUEST_ERROR",
 			Message:         "Error Decode Image",
 			Data:            nil,
@@ -77,7 +77,7 @@ func OcrFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 	// Decode base64 images
 	image2Data, err := base64.StdEncoding.DecodeString(bodyReq.Image2)
 	if err != nil {
-		res = models.ServiceResponse{
+		res = models.ServiceResponseFace{
 			Code:            "REQUEST_ERROR",
 			Message:         "Error Decode Image",
 			Data:            nil,
@@ -99,7 +99,7 @@ func OcrFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 	// Add the first image
 	image1Part, err := writer.CreateFormFile("firstImage", bodyReq.FileName1)
 	if err != nil {
-		res = models.ServiceResponse{
+		res = models.ServiceResponseFace{
 			Code:            "REQUEST_ERROR",
 			Message:         "Error Processing Image",
 			Data:            nil,
@@ -117,7 +117,7 @@ func OcrFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 	// Add the second image
 	image2Part, err := writer.CreateFormFile("secondImage", bodyReq.FileName2)
 	if err != nil {
-		res = models.ServiceResponse{
+		res = models.ServiceResponseFace{
 			Code:            "REQUEST_ERROR",
 			Message:         "Error Processing Image",
 			Data:            nil,
@@ -200,7 +200,7 @@ func OcrFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 	log.Println(respTime)
 
 	if ctx.Err() == context.DeadlineExceeded {
-		res = models.ServiceResponse{
+		res = models.ServiceResponseFace{
 			Code:              "REQUEST_TIME_OUT",
 			Message:           "koneksi timeout ke OCR service. Silahkan coba beberapa saat lagi",
 			Data:              nil,
@@ -218,7 +218,7 @@ func OcrFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 
 	if errSend != nil {
 
-		res = models.ServiceResponse{
+		res = models.ServiceResponseFace{
 			Code:              "REQUEST_ERROR",
 			Message:           "Terkendala Jaringan/Koneksi, Silahkan Coba Beberapa Saat Lagi",
 			Data:              nil,
@@ -235,7 +235,7 @@ func OcrFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 	}
 
 	if res.Code == "" {
-		res = models.ServiceResponse{
+		res = models.ServiceResponseFace{
 			Code:              "REQUEST_ERROR",
 			Message:           "Terkendala Jaringan/Koneksi, Silahkan Coba Beberapa Saat Lagi",
 			Data:              nil,
