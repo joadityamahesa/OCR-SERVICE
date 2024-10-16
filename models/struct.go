@@ -9,6 +9,8 @@ type BodyReq struct {
 	TokenService string `json:"tokenService"`
 	Image        string `json:"imgBase64"`
 	FileName     string `json:"fileName"`
+	IdNo         string `json:"idNo"`
+	FlagCheckOcr string `json:"flagCheckOcr"`
 }
 
 type ServiceResponseFace struct {
