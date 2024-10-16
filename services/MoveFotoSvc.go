@@ -92,7 +92,7 @@ func MoveFotoSvc(c *gin.Context, req models.MoveFotoReq) (res models.Respons) {
 	// filename := "/home/esta_dev/HO2/" + req.Namafile
 	aa := os.Getenv("DestPath") + req.FilePath
 	sftpsrc.MkdirAll(aa)
-	filename := aa + req.RenameFile + ".jpeg"
+	filename := aa + req.RenameFile
 	remoteFile, err := sftpsrc.Create(filename)
 	if err != nil {
 		res = models.Respons{

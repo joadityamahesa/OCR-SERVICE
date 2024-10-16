@@ -12,6 +12,7 @@ import (
 	"log"
 	"mime/multipart"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -251,6 +252,8 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 			return res
 		}
 
+		log.Println("Res From Google :", respgoogle.Results[0].Geometry.Location.Lat, respgoogle.Results[0].Geometry.Location.Lng)
+
 		// upload foto ke sftp
 
 		imgBytes, _ := base64.StdEncoding.DecodeString(bodyReq.Image)
@@ -278,6 +281,9 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 			return res
 		}
 
+		lat := strconv.FormatFloat(respgoogle.Results[0].Geometry.Location.Lat, 'f', -1, 64)
+		lng := strconv.FormatFloat(respgoogle.Results[0].Geometry.Location.Lng, 'f', -1, 64)
+
 		res = models.ServiceResponse{
 			Code:    respaai.Code,
 			Message: respaai.Message,
@@ -298,8 +304,8 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 				Religion:           respaai.Data.Religion,
 				Rtrw:               respaai.Data.Rtrw,
 				Village:            respaai.Data.Village,
-				Lat:                fmt.Sprintf("%f", respgoogle.Results[0].Geometry.Location.Lat),
-				Lon:                fmt.Sprintf("%f", respgoogle.Results[0].Geometry.Location.Lng),
+				Lat:                lat, //fmt.Sprintf("%f", respgoogle.Results[0].Geometry.Location.Lat),
+				Lon:                lng, //fmt.Sprintf("%f", respgoogle.Results[0].Geometry.Location.Lng),
 			},
 			Extra:             nil,
 			TransactionID:     respaai.TransactionID,

@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
+	"strconv"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -213,7 +214,7 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 
 	reqtogoogle := map[string]string{
 		"address": respaai.Data.Address + " KELURAHAN " + respaai.Data.Village + " KECAMATAN " + respaai.Data.District, // The address query
-		"key":     constanta.API_KEY_GOOGLE_GEOCODING,                                             // Response format
+		"key":     constanta.API_KEY_GOOGLE_GEOCODING,                                                                  // Response format
 	}
 
 	restyClient = resty.New()
@@ -256,6 +257,9 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 		return res
 	}
 
+	lat := strconv.FormatFloat(respgoogle.Results[0].Geometry.Location.Lat, 'f', -1, 64)
+	lng := strconv.FormatFloat(respgoogle.Results[0].Geometry.Location.Lng, 'f', -1, 64)
+
 	res = models.ServiceResponse{
 		Code:    respaai.Code,
 		Message: respaai.Message,
@@ -276,8 +280,8 @@ func OcrNonFaceSvc(bodyReq models.BodyReq) models.ServiceResponse {
 			Religion:           respaai.Data.Religion,
 			Rtrw:               respaai.Data.Rtrw,
 			Village:            respaai.Data.Village,
-			Lat:                fmt.Sprintf("%f", respgoogle.Results[0].Geometry.Location.Lat),
-			Lon:                fmt.Sprintf("%f", respgoogle.Results[0].Geometry.Location.Lng),
+			Lat:                lat, //fmt.Sprintf("%#.2f", respgoogle.Results[0].Geometry.Location.Lat),
+			Lon:                lng, //fmt.Sprintf("%#.2f", respgoogle.Results[0].Geometry.Location.Lng),
 		},
 		Extra:             nil,
 		TransactionID:     respaai.TransactionID,
