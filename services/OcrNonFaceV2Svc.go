@@ -88,6 +88,7 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 	// end koneksi sftp source
 	fmt.Println("Successfully connected to ssh server A.")
 
+	// 1. cek checkOcr
 	if bodyReq.FlagCheckOcr == "1" {
 		// Decode base64 images
 		image1Data, err := base64.StdEncoding.DecodeString(bodyReq.Image)
@@ -135,7 +136,7 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 
 		respaai := models.ResponseAai{}
 
-		// hit ke aai
+		// 2. hit ke aai
 		restyClient := resty.New()
 		_, errSend := restyClient.R().
 			SetContext(ctx).
@@ -211,7 +212,7 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 			"address": respaai.Data.Address + " KELURAHAN " + respaai.Data.Village + " KECAMATAN " + respaai.Data.District, // The address query
 			"key":     constanta.API_KEY_GOOGLE_GEOCODING,                                                                  // Response format
 		}
-		// hit ke google
+		// 3. hit ke google
 		restyClient = resty.New()
 		_, errs := restyClient.R().
 			SetQueryParams(reqtogoogle).
@@ -254,31 +255,32 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 
 		log.Println("Res From Google :", respgoogle.Results[0].Geometry.Location.Lat, respgoogle.Results[0].Geometry.Location.Lng)
 
-		// upload foto ke sftp
+		// 4. cek flagBcg jika == "B" -> Upload ke sftp
+		if bodyReq.FlagBcg == "B" {
+			imgBytes, _ := base64.StdEncoding.DecodeString(bodyReq.Image)
+			folderPath := os.Getenv("SourcePath")
 
-		imgBytes, _ := base64.StdEncoding.DecodeString(bodyReq.Image)
-		folderPath := os.Getenv("SourcePath")
+			sftpsrc.Mkdir(folderPath)
 
-		sftpsrc.Mkdir(folderPath)
-
-		remoteFile, errCreate := sftpsrc.Create(folderPath + respaai.Data.IDNumber + ".jpeg")
-		if errCreate != nil {
-			res = models.ServiceResponse{
-				Code:            respgoogle.Status,
-				Message:         "Failed Dial New Client",
-				Data:            nil, //models.DataAAI{},
-				Extra:           nil,
-				TransactionID:   "",
-				PricingStrategy: "",
+			remoteFile, errCreate := sftpsrc.Create(folderPath + respaai.Data.IDNumber + ".jpeg")
+			if errCreate != nil {
+				res = models.ServiceResponse{
+					Code:            respgoogle.Status,
+					Message:         "Failed Dial New Client",
+					Data:            nil, //models.DataAAI{},
+					Extra:           nil,
+					TransactionID:   "",
+					PricingStrategy: "",
+				}
+				resLog, _ := json.Marshal(res)
+				log.Println("RESPONSE BODY:", string(resLog))
+				return res
 			}
-			resLog, _ := json.Marshal(res)
-			log.Println("RESPONSE BODY:", string(resLog))
-			return res
-		}
 
-		_, err = remoteFile.Write(imgBytes)
-		if err != nil {
-			return res
+			_, err = remoteFile.Write(imgBytes)
+			if err != nil {
+				return res
+			}
 		}
 
 		lat := strconv.FormatFloat(respgoogle.Results[0].Geometry.Location.Lat, 'f', -1, 64)

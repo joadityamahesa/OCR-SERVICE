@@ -11,6 +11,7 @@ type BodyReq struct {
 	FileName     string `json:"fileName"`
 	IdNo         string `json:"idNo"`
 	FlagCheckOcr string `json:"flagCheckOcr"`
+	FlagBcg      string `json:"flagBcg"`
 }
 
 type ServiceResponseFace struct {
