@@ -131,7 +131,7 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 
 		writer.Close()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
 
 		respaai := models.ResponseAai{}
@@ -156,7 +156,7 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 		if ctx.Err() == context.DeadlineExceeded {
 			res = models.ServiceResponse{
 				Code:              "REQUEST_TIME_OUT",
-				Message:           "koneksi timeout ke OCR service. Silahkan coba beberapa saat lagi",
+				Message:           "Koneksi timeout ke OCR service. Silahkan coba beberapa saat lagi",
 				Data:              nil, //models.DataAAI{},
 				Extra:             nil,
 				TransactionID:     "",
@@ -239,8 +239,8 @@ func OcrNonFaceV2Svc(bodyReq models.BodyReq) models.ServiceResponse {
 
 		if respgoogle.Status != "OK" {
 			res = models.ServiceResponse{
-				Code:            respgoogle.Status,
-				Message:         "Resp Error From Google",
+				Code:            "Alamat KTP tidak valid", //respgoogle.Status,
+				Message:         "Alamat KTP tidak valid",
 				Data:            nil, //models.DataAAI{},
 				Extra:           nil,
 				TransactionID:   "",
